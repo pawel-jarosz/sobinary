@@ -4,4 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+clap = "4.6.1"
 goblin = "0.10.5"
+log = "0.4.29"
+simplelog = "0.12.2"
