@@ -3,31 +3,35 @@ use simplelog::*;
 use clap::Parser;
 
 mod args;
-mod dependency_finder;
+mod dependency_finder_app;
+mod summary_app;
 
-fn main() {
-    println!("Hello, world!");
+fn configure_logger(logger_level: args::DebugLevel) {
+    let level_filter = match logger_level {
+        args::DebugLevel::Trace => LevelFilter::Trace,
+        args::DebugLevel::Debug => LevelFilter::Debug,
+        args::DebugLevel::Info => LevelFilter::Info,
+        args::DebugLevel::Warn => LevelFilter::Warn,
+        args::DebugLevel::Error =>LevelFilter::Error,
+    };
+
     CombinedLogger::init(
         vec![
-            TermLogger::new(LevelFilter::Trace, Config::default(), TerminalMode::Mixed, ColorChoice::Auto),
+            TermLogger::new(level_filter, Config::default(), TerminalMode::Mixed, ColorChoice::Auto),
         ]
     ).unwrap();
+}
 
+fn main() {
     let cli = args::Cli::parse();
-    match cli.debug {
-        args::DebugLevel::Trace => log::set_max_level(LevelFilter::Trace),
-        args::DebugLevel::Debug => log::set_max_level(LevelFilter::Debug),
-        args::DebugLevel::Info => log::set_max_level(LevelFilter::Info),
-        args::DebugLevel::Warn => log::set_max_level(LevelFilter::Warn),
-        args::DebugLevel::Error => log::set_max_level(LevelFilter::Error),
-    }
+    configure_logger(cli.debug);
 
     match cli.command {
         args::Commands::Summary => {
-            info!("Generating summary...");
+            summary_app::summary_main(&cli.sysroot);
         },
         args::Commands::FindDependency { name } => {
-            dependency_finder::dependency_finder_main(&name, &cli.sysroot);
+            dependency_finder_app::dependency_finder_main(&name, &cli.sysroot);
         }       
     }
 }
